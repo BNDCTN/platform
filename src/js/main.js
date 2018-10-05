@@ -1,8 +1,37 @@
 var scene = new THREE.Scene();
 scene.add( new THREE.AmbientLight( 0xFFFFFF ) );
 
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-camera.position.set( 0, 0, 150 );
+scene.fog = new THREE.Fog( 11115678, 0, 10 );
+
+var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 100 );
+
+let cameraRotate = {
+    x: 0,
+    y: 0,
+    z: 0
+}
+
+let cameraPosition = {
+    x: 5,
+    y: 0.5,
+    z: 5
+}
+
+window['cameraRotate'] = cameraRotate;
+
+let _camData = localStorage.getItem('camera');
+if (_camData) {
+    let cameraData = JSON.parse(localStorage.getItem('camera'));
+    let { position, rotation } = cameraData
+    cameraPosition = position;
+    cameraRotate.y = rotation.y;
+}
+
+window.onunload = () => {
+    console.log('2we')
+    let cameraData = { rotation: cameraRotate, position: cameraPosition };
+    localStorage.setItem('camera', JSON.stringify(cameraData));
+}
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -18,6 +47,13 @@ let light = new THREE.PointLight( 0xFFFFFF, 1, 100 );
 light.position.set( 0, 10, 0 );
 scene.add( light );
 
+let box = new THREE.BoxGeometry(1, 1, 1);
+let material = new THREE.MeshStandardMaterial( { color: 0x555555, wireframe: true } );
+let cube = new THREE.Mesh(box, material);
+cube.position.x = 1;
+cube.position.y = 0.65;
+cube.position.z = 0;
+scene.add(cube); 
 
 let gridX = 0;
 let gridZ = 0;
@@ -26,7 +62,7 @@ for (let z = 0; z < 10; z++) {
 
     for (let x = 0; x < 10; x++) {
         let geometry = new THREE.BoxGeometry(1, 0.25, 1);
-        let material = new THREE.MeshStandardMaterial( { color: 0x555555, /* wireframe: true */ } );
+        let material = new THREE.MeshPhysicalMaterial( { color: 0x555555, /* wireframe: true */ } );
         let cube = new THREE.Mesh(geometry, material);
         cube.position.x = gridX += 1.05;
         cube.position.z = gridZ;
@@ -36,19 +72,6 @@ for (let z = 0; z < 10; z++) {
     gridZ += 1.05;
     gridX = 0;
 }
-
-let cameraRotate = {
-    x: 0,
-    y: 0,
-    z: 0
-}
-
-let cameraPosition = {
-    x: 5,
-    y: 0.5,
-    z: 5
-}
-
 
 var dir = new THREE.Vector3(cameraRotate.x, cameraRotate.y, cameraRotate.z);
 
@@ -228,6 +251,7 @@ var animate = function () {
 
     cubes[randIndex].position.y += 0.005 * randDir;
 */
+    cube.rotation.y -= 0.01;
 
     renderer.render( scene, camera );
 };
